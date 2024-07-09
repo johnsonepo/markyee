@@ -7,11 +7,11 @@ import axios from "axios";
     const navigate = useNavigate();
     const location = useLocation();
     const [errors, setErrors] = useState(null);
-    const [authToken, setAuthToken] = useState("");
     const [loadingRequest, setLoadingRequest] = useState(false);
+    const [authToken, setAuthToken] = useState("");
 
-    //const baseurl = 'https://markyee-server.envoos.com/markyee-backend';
-    const baseurl = 'http://localhost:9900';
+    const baseurl = 'https://markyee-server.envoos.com/markyee-backend';
+    //const baseurl = 'http://localhost:9900';
 
     useEffect(() => {
         const pathParts = location.pathname.split("/");
@@ -23,23 +23,28 @@ import axios from "axios";
     const activateUserRequest = async (e) => {
         e.preventDefault();
         const inputValue = authKeyRef.current.value.trim();
-
-        try {
-            setLoadingRequest(true);            
-            if (authToken !== inputValue) {
-                setErrors({ error: 'Invalid Auth Key' });
-            } else {
-                const response = await axios.post(`${baseurl}/api/user/detail/${authToken}`);
-                if (response.data.is_verified === 1) {
-                    navigate('/signin');
-                } else {
-                    setErrors({ error: 'Error activating user' });
-                }
-            }
-        } catch (error) {
-            console.error('Error verifying Auth Key:', error);
-            setErrors({ error: 'Error verifying Auth Key' });
-        } 
+        setLoadingRequest(true);
+        if (authToken !== inputValue) {
+            setErrors({ error: 'Invalid Auth Key' });
+            setLoadingRequest(false);
+        } else {
+            axios.post(`${baseurl}/api/user/detail/${authToken}`)
+                .then(response => {
+                    if (response.data.is_verified === 1) {
+                        navigate('/signin');
+                    } else {
+                        setErrors({ error: 'Error activating user' });
+                    }
+                })
+                .catch(error => {
+                    console.error('Error verifying Auth Key:', error);
+                    setErrors({ error: 'Error verifying Auth Key' });
+                })
+                .finally(() => {
+                    setLoadingRequest(false);
+                    console.log('Loading');
+                });
+        }
     };
 
     return (
